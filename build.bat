@@ -1,43 +1,51 @@
 @echo off
-chcp 65001 > nul
 echo ==========================================
-echo    健身记录 App - 一键打包脚本
+echo    Fitness Record App - Build Script
 echo ==========================================
 echo.
 
-REM 检查 Java
+REM Check Java
 where java >nul 2>&1
 if %errorlevel% neq 0 (
-    echo ❌ 错误：未检测到 Java
-    echo 请先安装 JDK 17 或更高版本
-    echo 访问 https://adoptium.net/ 下载
+    echo [ERROR] Java not found
+    echo Please install JDK 17 or later
+    echo Download from https://adoptium.net/
     pause
     exit /b 1
 )
 
-REM 检查 Java 版本
-for /f "tokens=2" %%i in ('java -version 2^>^&1 ^| findstr /i "version"') do (
+REM Check Java version
+for /f "tokens=3" %%i in ('java -version 2^>^&1 ^| findstr /i "version"') do (
     set "JAVA_VER=%%i"
 )
-set "JAVA_VER=%JAVA_VER:~1,2%"
-if %JAVA_VER% LSS 17 (
-    echo ❌ 错误：需要 JDK 17 或更高版本，当前版本：%JAVA_VER%
+set "JAVA_VER=%JAVA_VER:"=%"
+for /f "tokens=1,2 delims=." %%a in ("%JAVA_VER%") do (
+    set "MAJOR_VER=%%a"
+    set "MINOR_VER=%%b"
+)
+if "%MAJOR_VER%"=="1" (
+    set "JAVA_VER_NUM=%MINOR_VER%"
+) else (
+    set "JAVA_VER_NUM=%MAJOR_VER%"
+)
+if %JAVA_VER_NUM% LSS 17 (
+    echo [ERROR] JDK 17 or later required, current: %JAVA_VER%
     pause
     exit /b 1
 )
 
-echo ✓ Java 版本检查通过: JDK %JAVA_VER%
+echo [OK] Java version: %JAVA_VER%
 echo.
 
-REM 检查 Gradle Wrapper
+REM Check Gradle Wrapper
 if exist "gradlew.bat" (
-    echo ✓ 使用项目自带的 Gradle Wrapper
+    echo [OK] Using Gradle Wrapper
     echo.
-    echo 开始构建 Debug APK...
+    echo Building Debug APK...
     echo.
-    gradlew.bat assembleDebug
+    call gradlew.bat assembleDebug
 ) else (
-    echo ❌ 错误：未找到 Gradle Wrapper
+    echo [ERROR] Gradle Wrapper not found
     pause
     exit /b 1
 )
@@ -45,13 +53,13 @@ if exist "gradlew.bat" (
 if %errorlevel% equ 0 (
     echo.
     echo ==========================================
-    echo ✓ 构建成功！
-    echo APK 文件位置：app\build\outputs\apk\debug\app-debug.apk
+    echo [SUCCESS] Build completed!
+    echo APK: app\build\outputs\apk\debug\app-debug.apk
     echo ==========================================
 ) else (
     echo.
-    echo ❌ 构建失败！
-    echo 请检查错误信息
+    echo [ERROR] Build failed!
+    echo Please check the error messages
 )
 
 pause
