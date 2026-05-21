@@ -7,6 +7,7 @@ plugins {
 android {
     namespace = "com.record.fitness"
     compileSdk = 34
+    buildToolsVersion = "34.0.0"
 
     defaultConfig {
         applicationId = "com.record.fitness"
